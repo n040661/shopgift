@@ -1,0 +1,193 @@
+<#include '/admin/header.html' >
+<style>
+.searchAdvancedS{
+background-color: #FDEA7A;
+}	
+
+</style>
+<#assign dateFormat="com.enation.framework.directive.DateformateDirective"?new()>
+<div class="main">
+	 <div class="buttonArea">
+		<a href="javascript:void(0)" class="button blueButton"  onclick="append()">添加</a>
+		<a href="javascript:void(0)" class="button"  onclick="del()">删除</a>
+	</div>
+	<div class="shadowBoxWhite tableDiv">
+		<form id="tagform">
+			<table class="easyui-datagrid"
+			data-options="url:'${ctx}/shop/admin/bonus-type!listRegisterBonusJson.do',pageList: [5,10,15,20],pageSize:10,fitColumns:'true'" pagination="true" width="width" id="tagdata">
+				<thead>
+				    <tr>
+				   		<th  data-options="field:'id',checkbox:true,width:40">推荐项id</th>
+				   	 	<th  data-options="field:'name',width:80">活动名称</th>
+				   	 	<th  data-options="field:'active_start_time',width:60" formatter="formatTime">活动开始时间 </th>
+				   	 	<th  data-options="field:'active_end_time',width:60" formatter="formatTime">活动结束时间 </th>
+				   	 	<th  data-options="field:'active_now_time',width:60" formatter="formatTime">活动设置时间 </th>
+				   	 	<th  data-options="field:'number',width:60" >优惠券数量</th>
+				   	 	<th  data-options="field:'is_true',width:20" formatter="formatIsShow">开启 </th>
+				   	 	<th  data-options="field:'action',width:40,align:'center'" formatter="formatAction">操作</th>
+				   	 </tr>
+				</thead>
+			</table>
+		</form>
+		<div id="Taginfo" style="display: none;"></div>
+	</div>
+</div>
+
+
+ <script type="text/javascript">
+
+function formatAction(value,row,index){
+	var val="<a title='修改' href='javascript:void(0);' onclick='edit("+row.id+")'>修改</a> | <a href='#' title='关联优惠券' onclick=\"newTab('关联优惠券','${ctx}/shop/admin/bonus-type!listBonus.do?activeid="+row.id+"')\">关联优惠券</a>";
+	return val;
+}
+function formatId(value,row,index){
+	var val=row.team_id;
+	return val;
+}
+function formatTime(value,row,index){
+	return getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+}
+function formatIsShow(value,row,index){
+	var val=row.is_true;
+	if(val==1){
+		return "Y";
+	}else{
+		return "N";
+	}
+}
+
+
+function del(){ 
+	 	var rows = $('#tagdata').datagrid("getSelections"); 
+	 	if(rows.length<1){
+	 		$.Loading.error("请选择要删除的活动");/*请选择要删除的推荐项*/
+	 		return;
+	 	}
+		if(!confirm("确认要删除这些活动吗？")){	
+			return ;/*确认要删除这些推荐项吗*/
+		}
+		var options = {
+				url : "${ctx}/shop/admin/bonus-type!deleteRegisterBonus.do?ajax=yes",
+				type : "POST",
+				dataType : 'json',
+				success : function(result) {
+					$.Loading.success(result.message);
+					$('#tagdata').datagrid('reload');
+				},
+				error : function(e) {
+					$.Loading.error("出现错误 ，请重试");/*出现错误 ，请重试*/
+				}
+		};
+		$('#tagform').ajaxSubmit(options);	
+		
+}
+ function append(){
+	 $("#Taginfo").show();
+	　　	$('#Taginfo').dialog({
+	　　		title: '添加规则名称',	
+	　　		width: 750,
+	　　		closed: false,
+	　　		cache: false,
+	　　		href:'${ctx}/shop/admin/bonus-type!addBonusList.do',
+	　　		modal: true,
+	　　		buttons: [{					
+	　　			 text:'保存',
+	　　			 handler:function(){
+	　　				 var disabled=  $(this).hasClass("l-btn-disabled");
+	　　				 if(!disabled){
+	　　					var savebtn = $(this);
+	　　				 	addTeamForm(savebtn);		
+	　　				 }
+	　　			}
+	　　		},{
+	　　			 text:'还原',
+	　　			 handler:function(){
+	　　				 $('#addBonusTypeForm')[0].reset() ;
+	　　			 }
+	　　		}]
+	　　	});
+ }
+ function addTeamForm(savebtn){
+		var formflag= $("#addBonusTypeForm").form().form('validate');
+		if(formflag){
+			$.Loading.show("正在保存请稍后...");
+			savebtn.linkbutton("disable");	
+		 	var options = {
+				url : "${ctx}/shop/admin/bonus-type!saveBonusList.do?ajax=yes",
+				type : "POST",
+				dataType : "json",
+				success : function(result) {
+					if(result.result==1){
+						$.Loading.success(result.message);
+						$("#Taginfo").dialog('close');
+						$('#tagdata').datagrid('reload');
+					}else{
+						$.Loading.error(result.message);
+					}
+					savebtn.linkbutton("enable");
+				},
+				 error : function(e) {
+					 $.Loading.error("出现错误 ，请重试");	
+					 savebtn.linkbutton("enable");
+				}
+			};
+			$('#addBonusTypeForm').ajaxSubmit(options);	
+		}
+	}
+ function edit(id){
+	 $("#Taginfo").show();
+	　　	$('#Taginfo').dialog({
+	　　		title: '修改活动',		
+	　　		width: 750,
+	　　		closed: false,
+	　　		cache: false,
+	　　		href: '${ctx}/shop/admin/bonus-type!updateRegisterBonus.do?activeid='+id, 	 
+	　　		modal: true,
+	　　		buttons: [{					
+	　　			 text:'保存',
+	　　			 iconCls:'icon-ok',
+	　　			 handler:function(){
+	　　				 var disabled=  $(this).hasClass("l-btn-disabled");
+	　　				 if(!disabled){
+	　　					var editbtn = $(this);
+		　　				editTeamForm(editbtn);		
+		　　			}
+　　				 }
+　　			 },{
+	　　			 text:'还原',
+	　　			 handler:function(){
+	　　				 $('#editBonusTypeForm')[0].reset() ;
+	　　			 }
+	　　		}]
+	　　	}); 
+ }
+ function editTeamForm(editbtn){
+		var formflag= $("#editBonusTypeForm").form().form('validate');
+		if(formflag){
+			$.Loading.show("正在保存请稍后...");
+			editbtn.linkbutton("disable");	
+			var options = {
+				url : "${ctx}/shop/admin/bonus-type!saveRgister.do?ajax=yes",
+				type : "POST",
+				dataType : "json",
+				success : function(result) {
+					if(result.result==1){
+						$.Loading.success(result.message);
+						$("#Taginfo").dialog('close');
+						$('#tagdata').datagrid('reload');
+						editbtn.linkbutton("enable");
+					}else{
+						$.Loading.error(result.message);
+						editbtn.linkbutton("enable");
+					}
+			 	},
+			 	error : function(e) {
+			 		$.Loading.error("出现错误 ，请重试");	
+			 		editbtn.linkbutton("enable");
+				}
+			};
+			$('#editBonusTypeForm').ajaxSubmit(options);
+		}
+	}
+
+</script>

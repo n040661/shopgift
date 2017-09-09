@@ -1,0 +1,242 @@
+<#include '/admin/header.html' >  <#assign
+dateFormat="com.enation.framework.directive.DateformateDirective"?new()>
+<style>
+.input_text{
+	width: 95%;
+}
+</style>
+<div id="loading"></div>
+<div class="main">
+	<form id="orderform">
+		<div  style="height: auto">
+		<span style="float: right;"> 
+		 	<span id="simpleSearch">
+		 	    <span style="font-size: 18px;font-weight: bold;color: red">使用优惠券的一共有：${limitcount!''}个人,一共产生${counttotal!''}条记录&nbsp;</span>
+		 		<td width="70" align="right">下单时间</td>
+					<td><input class="easyui-datebox" style="width: 90px;height: 28px;"
+						id="start_time" data-options="buttons:buttons" /> <span>&nbsp;&nbsp;~&nbsp;&nbsp;</span>
+						<input class="easyui-datebox" style="width: 90px;height: 28px;" id="end_time"
+						data-options="buttons:e_buttons" /></td>
+
+		 		<span>订单状态</span>
+		 		<select id="status" class="inputSelect valid" style="width: 68px">
+					<option value="">--所有--</option> <#list statusMap?keys as key>
+					<option value="${key}">${statusMap.get(key)}</option> </#list>
+				</select> &nbsp;&nbsp;
+			 	<input id="searchKeyword" class="input_text" type="text" value="" size="30" style="width: 170px" placeholder="请输入订单号,买家名称,优惠名称" name="searchKeyWord">
+				<a href="javascript:void(0)" class="easyui-linkbutton" id="search" data-options="plain:true" onclick="searchOrder()">搜索</a>
+			</span> 
+		</span>
+		<input id="Advanced" name="Advanced" type="hidden" value="0" />
+		</div>
+
+
+     <div class="clear height10"></div>
+
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'bonus-type!listBonusJson.do?send_type=1',pageList: [5,10,15,20],pageSize:${pageSize},fitColumns:'true'"
+				pagination="true" width="width" id="orderdata" >
+				<thead>
+					<tr>
+					    <th  data-options="field:'order_id',width:100,sortable:true">订单id</th>
+					    <th  data-options="field:'sn',width:100" formatter="forsn">订单号</th>
+				   	 	<th  data-options="field:'uname',width:100" formatter="formember">会员名称</th>
+				   	 	<th  data-options="field:'ip',width:100" >买家ip地址 </th>
+				   	 	<th  data-options="field:'bonus_name',width:100" >活动名称 </th>
+				   	 	<th  data-options="field:'recognition',width:100" >代金券编号 </th>
+				   	 	<th  data-options="field:'send_type',width:100" formatter="formatSendType" >发放类型</th>
+				   	 	<!-- <th  data-options="field:'need_pay_money',width:80" formatter="forMoney" >付款总金额 </th> -->
+				   	 	<th  data-options="field:'bonus_money',width:80" formatter="forMoney" >优惠金额 </th>
+<!-- 				   	 	<th  data-options="field:'min_bonus_money',width:80" formatter="forMoney" >最小订单金额 </th>
+ -->				   	 	<!-- <th  data-options="field:'type_name',width:80"  >优惠券类型 </th> -->
+				   	 	<th  data-options="field:'platform',width:80" formatter="forPlat" >使用平台 </th>
+				   	 	<th  data-options="field:'usetime',width:100" formatter="formatTime" >优惠券使用时间</th>
+				   	 		<th  data-options="field:'currency',width:100,sortable:true" formatter="formatTax">税制</th>
+				   	 	<th data-options="field:'status',width:60,sortable:true" formatter="forStruts">订单状态</th>
+						<th data-options="field:'pay_status',width:69,sortable:true" formatter="forpay">付款状态</th>
+						<th data-options="field:'ship_status',width:69,sortable:true" formatter="forship">发货状态</th>
+						<th data-options="field:'reason',width:100,sortable:true,align:'center'" formatter="formatAction1">订单原因</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+</div>
+<div id="divdia"></div>
+<script type="text/javascript">
+function formatGoodsName(value,row,index){
+	 var val="<a href=\"../../goods-"+row.goods_id+".html\" target=\"_blank\">"+row.name+"</a><input type=\"hidden\" value=\""+row.goods_id+"\" name=\"goods_id\"/>";
+	 return val;
+	}
+function forsn(value,row,index){
+	//var val="<a href='#' onclick=\"newTab('查看订单详细','${ctx}/b2b2c/admin/storeOrder!orderDetail.do?orderId="+row.order_id+"&sn="+row.sn+"&logi_no="+row.logi_no+"&uname="+row.uname+"&ship="+row.ship_name+"&status="+row.status+"')\">"+row.sn+"</a>"
+	var val="<a href='#' onclick=\"newTab('查看订单详细"+(row.sn).substring(0,6)+"','${ctx}/shop/admin/order!detail.do?orderId="+row.order_id+"&sn="+row.sn+"&logi_no="+row.logi_no+"&uname="+row.uname+"&ship="+row.ship_name+"&status="+row.status+"')\">"+row.sn+"</a>"
+	return val;
+}
+function formember(value,row,index){
+	var val="<a  href='#' onclick=\"newTab('查看订单详细"+(row.sn).substring(0,6)+"','/shop/admin/member!detail.do?memberId="+row.member_id+"')\">"+row.uname+"</a>";
+	//var val="<a href='#' onclick=\"newTab('查看订单详细','${ctx}/b2b2c/admin/storeOrder!orderDetail.do?orderId="+row.order_id+"&sn="+row.sn+"&logi_no="+row.logi_no+"&uname="+row.uname+"&ship="+row.ship_name+"&status="+row.status+"')\">"+row.sn+"</a>"
+	return val;
+}
+function formatTax(value,row,index){
+	var val="";
+   if((row.sn).substring(0,4)=="SO11"){
+	  val="平台完税";
+   }else if((row.sn).substring(0,4)=="SO14"){
+       val="代发完税";
+   }else if((row.sn).substring(0,4)=="SO12"){
+	   val="平台保税";
+   }else if((row.sn).substring(0,4)=="SO15"){
+	   val="代发保税";
+   }else if((row.sn).substring(0,4)=="SO13"){
+	   val="平台直邮"
+   }else if((row.sn).substring(0,4)=="SO16"){
+	   val="代发直邮";
+   }else{
+	   val="无";
+   }
+    return val;
+}
+function forMoney(value, row, index) {
+	if(row.currency=="RUB"){
+		var val = value+"р.";
+	}else if(row.currency=="CNY"){
+		var val = "￥" + value;
+	}
+	return val;
+}
+function forPlat(value,row,index){
+	var val=row.platform;
+	if(val==0){
+		return "俄罗斯馆";
+	}else if(val==1){
+		return "龙江物产";
+	}else if(val==2){
+		return "澳大利亚馆";
+	}else if(val==3){
+		return "新西兰馆";
+	}else if(val==4){
+		return "韩国馆";
+	}else if(val==5){
+		return "德国馆";
+	}else if(val==7){
+		return "融信大宗";
+	}else if(val==8){
+		return "美洲馆";
+	}else{
+		return "所有";
+	}
+}
+function formatSendType(value,row,index){
+// 	var val=row.platform;
+	var val;
+	if (value == 1) {
+		val = "店铺发放";
+	}
+	if (value == 0) {
+		val = "平台发放";
+	}
+	return val;
+}
+function formatTime(value,row,index){
+	var val = getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	return val;
+}
+function formatTimeBonus(value,row,index){
+	if(row.cancletime==null){
+		var val="无";
+	}else{
+		var val = getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	}
+	return val;
+}
+function formatIsCancle(value,row,index){
+	var val=row.is_cancle;
+	if(val==1){
+		return "是";
+	}else{
+		return "否";
+	}
+}
+//订单状态
+function forStruts(value, row, index) {
+	var val;
+	val = getType(${status_Json},value);
+	return val;
+}
+
+//付款状态
+function forpay(value,row,index){
+	var val;
+	val = getType(${payStatus_Json},value);
+	return val;
+}
+
+//发货状态
+function forship(value,row,index){
+	var val;
+	val = getType(${ship_Json},value);
+	return val;
+}
+
+
+function getType(exMap,value){
+	var val;
+	$.each(exMap,function(key,values){ 
+	    if(value==key){
+	    	val=values;
+	    }
+	});
+	return val;
+}
+var buttons = $.extend([], $.fn.datebox.defaults.buttons);
+buttons.splice(1, 0, {
+text: '清空',
+handler: function(target){
+	 $('#start_time').datebox('setValue',"");
+}
+});
+
+var e_buttons = $.extend([], $.fn.datebox.defaults.buttons);
+e_buttons.splice(1, 0, {
+text: '清空',
+handler: function(target){
+	 $('#end_time').datebox('setValue',"");
+}
+});
+function searchOrder(){
+	var keyword = $.trim($("#searchKeyword").val());
+	var start_time = $('#start_time').datebox('getValue');
+	var end_time = $('#end_time').datebox('getValue');  
+	var status = $("#status").val();
+	$("#orderdata").datagrid('load', {
+		 keyword:keyword,
+		 start_time:start_time,
+		 end_time:end_time,
+		 status:status,
+		 page:1
+    });
+}
+function formatAction1 (value,row,index){
+	var reason = row.reason;
+	var val="<a href='javascript:void(0);' class='edit'   title='详细' onclick='openDetail(\""+reason+"\")'></a>";
+	return val; 
+}
+function openDetail(reason) {
+	$("#divdia").dialog({
+		title : "详细理由",
+		width : 500,
+		height : 280,
+		closed : false,
+		cache : false,
+// 		contentType: "application/x-www-form-urlencoded; charset=utf-8", 
+		href : "bonus-type!detailReason.do?reason="+encodeURI(encodeURI(reason)),
+// 		href : "bonus_detail_reason.html?reason='seeds'",
+// 		href : "/shop/com/enation/app/shop/component/bonus/action/html/bonus_detail_reason.html",
+		modal : true
+	});
+}
+</script>
+
+<#include '/admin/footer.html' >

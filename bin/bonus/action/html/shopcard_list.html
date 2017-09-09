@@ -1,0 +1,255 @@
+<#include '/admin/header.html' >
+<div class="main">
+	<div class='buttonArea'>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="append()">添加</a>
+		<a href="javascript:void(0)" class="button b_fr" id="search" data-options="plain:true" onclick="searchShop()">搜索</a>&nbsp;&nbsp;
+		<input id="shop_name" class="input_text b_fr mr5" type="text" value="" size="30" placeholder="请输入活动名称" name="shop_name" />
+	</div>
+	
+	<form id="shopform">
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'/shop/admin/shopCard!listJson.do',pageList: [5,10,20,30],pageSize:${pageSize!10},fitColumns:'true'"
+				pagination="true" width="width" id="shopdata" sortName="shop_id" sortOrder="desc">
+				<thead>
+					<tr>
+						<th data-options="field:'shop_id',checkbox:true,width:100" ></th>
+						<th data-options="field:'shop_name',width:50,sortable:true">活动名称</th>
+						<th data-options="field:'use_start_date',width:100,sortable:true" formatter="formatTime">开始日期</th>
+						<th data-options="field:'use_end_date',width:70,sortable:true" formatter="formatTime">结束日期</th>
+					    <th data-options="field:'create_num',width:70,sortable:true">发放总数量</th>
+						<th data-options="field:'use_num',width:70,sortable:true">使用总数量</th>
+						<th data-options="field:'is_published',width:70,sortable:true" formatter="formatPublish">发布状态</th>
+						<th data-options="field:'create_time',width:70,sortable:true">创建时间</th>
+<!-- 						<th data-options="field:'store_id',width:70">店铺id</th> -->
+						<th data-options="field:'action',width:100" formatter="formatAction">操作</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+<div id="divdia" style="display: none;"></div>
+</div>
+<script type="text/javascript">
+	function formatTime(value, row, index) {
+		return getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss"); 
+	}
+	function formatPublish(value, row, index){
+		var val;
+		if(value==1){
+			val="<a title='点击取消发布' href='javascript:void(0);' onclick='javascript:unPublish("+row.shop_id+")' >已发布</a>"
+		}else{
+			val="<a title='点击发布' href='javascript:void(0);' onclick='javascript:publish("+row.shop_id+")' >未发布</a>"
+		}
+		return val
+	}
+	//发布
+	function publish(id){
+		if(!confirm("确定发布吗？")){
+			return false;
+		}
+		$.Loading.show("正在发布请稍后...");
+		$.ajax({
+			url : "/shop/admin/shopCard!nowPublish.do?shop_id="+id,
+			dataType : 'json',
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success(result.message);
+					$("#shopdata").datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误 ，请重试");
+			}
+		});
+	}
+	//取消发布
+	function unPublish(id){
+		if(!confirm("确定取消发布吗？")){
+			return false;
+		}
+		$.Loading.show("正在取消发布请稍后...");
+		$.ajax({
+			url : "/shop/admin/shopCard!unPublish.do?shop_id="+id,
+			dataType : 'json',
+			type: 'POST',
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success(result.message);
+					$("#shopdata").datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误 ，请重试");
+			}
+		});
+	}
+	function append(id) {
+		var map = {}; // Map map = new HashMap();
+		if (!id) {
+			map["href"] = "/shop/admin/shopCard!add.do";
+			map["formId"] = "#addForm";
+			map["url"] = "/shop/admin/shopCard!saveAdd.do?ajax=yes";
+			map["title"] = "添加购物卡";
+			map["loadshow"] = "正在添加......";
+		} else {
+			map["href"] = "/shop/admin/shopCard!edit.do?shop_id=" + id;
+			map["formId"] = "#editForm";
+			map["url"] = "/shop/admin/shopCard!saveEdit.do?ajax=yes";
+			map["title"] = "修改购物卡";
+			map["loadshow"] = "正在修改......";
+		}
+		map["divDialog"] = "#divdia";
+		map["gridreload"] = "#shopdata";
+		addDialog(map);
+	}
+	function addDialog(map) {
+		$(map["divDialog"]).show();
+		$(map["divDialog"]).dialog({
+			title : map["title"],
+			width : 450,
+			height : 300,
+			closed : false,
+			cache : false,
+			shadow :false,
+			href : map["href"],
+			modal : true,
+			buttons : [ {
+				text : '保存',
+				iconCls : 'icon-ok',
+				handler : function() {
+					submitForm(map);
+				}
+			}, {
+				text : '清空',
+				handler : function() {
+					clearForm(map);
+				}
+			} ]
+		});
+	}
+	function submitForm(map) {
+		var name_abbreviate=$("#recognition").val();
+		var shop_id=$("#shop_id").val();
+		if(!checkName(name_abbreviate, shop_id)){
+			return false;
+		}
+		var formflag = $(map["formId"]).form().form('validate');
+		if (formflag) {
+			$.Loading.show(map["loadshow"]);
+			var options = {
+				url : map["url"],
+				type : "POST",
+				dataType : 'json',
+				success : function(result) {
+					if (result.result == 1) {
+						$(map["divDialog"]).dialog('close');
+						$(map["gridreload"]).datagrid('reload');
+						$.Loading.success(result.message);
+					}
+					if (result.result == 0) {
+						$.Loading.error(result.message);
+					}
+				},
+				error : function(e) {
+					alert("出现错误 ，请重试");
+				}
+			};
+			$(map["formId"]).ajaxSubmit(options);
+		}
+	}
+
+	function clearForm(map) {
+		$(map["formId"]).form('clear');
+	}
+	
+	function del(shop_id){
+		$.ajax({
+			url:"/shop/admin/shopCard!deleteShopCard.do?shop_id="+shop_id,
+			dataType:"json",
+			success:function(res){
+				if(res.result==1){
+					$.Loading.success(res.message);
+					$('#shopdata').datagrid("reload");
+				}else{
+					$.Loading.error(res.message);
+				}
+			},
+			error:function(){
+				alert("删除出现意外错误");
+			}
+		});
+	}
+	
+	function formatAction(value, row, index) {
+		var val = "";
+		if(row.is_published==1){
+			val += "<a class='issue' title='发放' href='javascript:void(0);' onclick='newTab(\"发放\",\"${ctx}/shop/admin/shopCard!send.do?shop_id=" + row.shop_id +"\")' ></a>"
+			val += "<a class='view' title='详情' href='javascript:void(0);' onclick='newTab(\"列表\",\"${ctx}/shop/admin/shopCard!listMember.do?shop_id="+ row.shop_id +"\")' ></a>"
+		}else{
+			val += "<a class='issue' title='发放' href='javascript:void(0);' onclick='newTab(\"发放\",\"${ctx}/shop/admin/shopCard!send.do?shop_id=" + row.shop_id +"\")' ></a>"
+			val += "<a class='view' title='详情' href='javascript:void(0);' onclick='newTab(\"列表\",\"${ctx}/shop/admin/shopCard!listMember.do?shop_id="+ row.shop_id +"\")' ></a>"
+			val += "<a class='edit' title='编辑' href='javascript:void(0);' onclick='append("+row.shop_id+")' ></a>"
+			val += "<a class='view' title='关联店铺' href='javascript:void(0);' onclick='newTab(\"列表\",\"${ctx}/shop/admin/shopCard!listLink.do?shop_id=" + row.shop_id +"\")' ></a>"
+			val += "<a class='delete' title='移除' href='javascript:void(0);' onclick='del("+row.shop_id+")' ></a>"
+		}
+		return val;
+	}
+	
+	//报表打印 
+	function exportCard(shop_id){
+		location.href="/shop/admin/shopCard!exportCard.do?shop_id="+shop_id;
+	}
+
+	//获取今天的日期
+	$(function() {
+		var curr_time = new Date();
+		var strDate = curr_time.getFullYear() + "-";
+		strDate += curr_time.getMonth() + 1 + "-";
+		strDate += curr_time.getDate() + "-";
+		strDate += curr_time.getHours() + ":";
+		strDate += curr_time.getMinutes() + ":";
+		strDate += curr_time.getSeconds();
+	});
+	
+	//搜索
+	function searchShop(){
+		var shop_name = $.trim($("#shop_name").val());
+		$("#shopdata").datagrid('load', {
+			shop_name:shop_name,
+			page:1
+	   });
+	}
+	function checkName(name, shop_id){
+		var flag=false;
+		if(typeof(shop_id)!="undefined" && shop_id!="undefined"){
+			url="/shop/admin/shopCard!checkName.do?name_abbreviate="+name+"&shop_id="+shop_id;
+		}else{
+			url="/shop/admin/shopCard!checkName.do?name_abbreviate="+name;
+		}
+		var options={
+				url: url,
+				type:"POST",
+				async:false,
+				dataType:"json",
+				success:function(result){
+					if(result.result==0){
+						$.Loading.error(result.message);
+					}
+					else flag=true;
+				},
+				error:function (){
+					$.Loading.error("出现错误");
+				}
+		}
+		$.ajax(options);
+		return flag;
+	}
+</script>
+<#include '/admin/footer.html' >

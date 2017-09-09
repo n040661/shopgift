@@ -1,0 +1,87 @@
+<#assign dataformat="com.enation.framework.directive.DateformateDirective"?new()/>
+<style>
+.input_text{
+	width: 200px;
+}
+</style>
+<div class="easyui-panel" style="border-style: none;">
+	<div style="padding: 10px 0 10px 20px">
+		<form method="post" class="validate" id="editForm">
+			<table>
+				<tr>
+					<th><label class="text">购物卡名称：</label></th>
+					<td><input class="easyui-validatebox input_text" data-options="required:true,validType:['string','length[6,20]']" type="text"
+						name="shopCartType.shop_name" value="${shopCartType.shop_name}"  maxlength="20"
+						isrequired="true" id="shop_name_"/></td>
+				</tr>
+				<tr>
+					<th><label class="text">购物卡识别码：</label></th>
+					<td><input class="easyui-validatebox input_text"
+						data-options="required:true,validType:['string','length[6,20]']" type="text" id="recognition"
+						name="shopCartType.recognition" value="${shopCartType.recognition}" maxlength="20"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">代金券金额：</label></th>
+					<td><input class="easyui-numberbox input_text"
+						data-options="required:true" type="text" value="${shopCartType.shop_money}"
+						maxlength="8" 
+						name="shopCartType.shop_money" isrequired="true" />
+<!-- 						<em class="tip">此类代金券可以抵消的人民币金额</em> -->
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">如何发放此类型代金券：</label></th>
+					<td><input type="radio" name="shopCartType.send_type" class="send_type" value="0" <#if shopCartType.send_type==0>checked</#if> />平台发放&nbsp;&nbsp;&nbsp;&nbsp; 
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">开始日期：</label></th>
+					<td><input type="text" name="use_start_date" style="height: 28px;"  id="use_start_date" value="<@dataformat time="${shopCartType.use_start_date}" pattern="yyyy-MM-dd HH:mm:ss" />"
+						 class="easyui-datetimebox" data-options="required:true" /> 
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">结束日期：</label></th>
+					<td><input type="text" name="use_end_date" style="height: 28px;" id="use_end_date"  value="<@dataformat time="${shopCartType.use_end_date}" pattern="yyyy-MM-dd HH:mm:ss" />"
+						class="easyui-datetimebox" data-options="required:true" /></td>
+				</tr>
+				<tr style="display:none">
+					<th><label class="text">使用地区馆：</label></th>
+					<td>
+					 <select name="shopCartType.sendplat">
+					     <option value="-1"  selected>所有</option>
+					 </select>
+                   </td>
+				</tr>
+				<tr>
+					<th><label class="text">税制：</label></th>
+					<td>
+					 <select name="shopCartType.tax_system">
+					 	<option value="102" <#if shopCartType.tax_system?? && shopCartType.tax_system==102>selected="selected"</#if>>全部</option>
+					 </select>
+                   </td>
+				</tr>
+				<tr style="display:none;">
+					<th><label class="text">发放条件</label></th>
+					<td>
+					 <select name="shopCartType.store_id">
+					 	<option value="0" selected="selected">平台</option>
+					 </select>
+                   </td>
+				</tr>
+				<tr>
+					<th><label class="text">是否启用：</label></th>
+					<td>
+						是<input type="radio" name="shopCartType.is_published" value="1"checked="true" />&nbsp;&nbsp;&nbsp;&nbsp; 
+						否<input type="radio" name="shopCartType.is_published" value="0"/>
+					</td>
+				</tr>
+			</table>
+			<input type="hidden" id="shop_id" name="shopCartType.shop_id" value="${shopCartType.shop_id}">
+			<input type="hidden" name="shopCartType.create_num" value="${shopCartType.create_num!}">
+			<input type="hidden" name="shopCartType.use_num" value="${shopCartType.use_num!}">
+			<input type="hidden" name="shopCartType.create_time" value="${shopCartType.create_time!}">
+		</form>
+	</div>
+</div>

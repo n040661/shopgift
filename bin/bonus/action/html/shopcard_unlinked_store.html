@@ -1,0 +1,120 @@
+<#include '/admin/header.html' >
+<div class="main">
+	<div class='buttonArea'>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="newTab('列表','${ctx}/shop/admin/shopCard!listLink.do?shop_id=${shop_id}')">返回已关联列表</a>
+		<a id="linkStore" href="javascript:void(0)" class="easyui-linkbutton" onclick="linkStore()">关联店铺</a>
+		<a href="javascript:void(0)" class="button b_fr" id="search" data-options="plain:true" onclick="searchStore()">搜索</a>&nbsp;&nbsp;
+		<input id="storename" class="input_text b_fr mr5" type="text" value="" size="30" placeholder="请输入店铺名" name="storename" />
+	</div>
+	
+	<form id="giftform">
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'/shop/admin/shopCard!unlinkedListJson.do?shop_id=${shop_id}',pageList: [5,10,20,30],pageSize:${pageSize!10},fitColumns:'true'"
+				pagination="true" width="width" id="linkdata" sortName="store_id" sortOrder="desc">
+				<thead>
+					<tr>
+						<th data-options="field:'store_id',checkbox:true,width:100" ></th>
+						<th  data-options="field:'storeId',width:40" formatter="formatStoreId">店铺ID</th>
+						<th data-options="field:'store_name',width:70,sortable:true">店铺名称</th>
+						<th data-options="field:'member_name',width:70,sortable:true">会员名称</th>
+						<th data-options="field:'create_time',width:70,sortable:true" formatter="formatTime">店铺注册时间</th>
+						<th  data-options="field:'parent_store',width:100" formatter="formatParentStore">店铺归属</th>
+				   	 	<th  data-options="field:'store_country',width:60" formatter="formatMarket" >店铺国家</th>
+				   	 	<th  data-options="field:'store_market',width:60" formatter="formatMarket" >投向市场</th>
+				   	 	<th  data-options="field:'store_initiallist',width:60" formatter="formatchushidan" >初始单</th>
+<!-- 						<th data-options="field:'action',width:80" formatter="formatAction">操作</th> -->
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+<div id="divdia" style="display: none;"></div>
+</div>
+<script type="text/javascript">
+	function formatTime(value, row, index) {
+		return getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	}
+	function formatStoreId(value,row,index){
+		return row.store_id;
+	}
+	function formatStore(value,row,index){
+		return "<a href='${ctx}/b2b2c/admin/store!list.do?store_id="+row.store_id+"'>"+value+"</a>";
+	}
+	function formatStorehouse(value,row,index){
+		return "<a href='${ctx}/b2b2c/admin/storehouse!list.do?store_id="+row.store_id+"'>"+value+"</a>";
+	}
+	function formatParentStore(value,row,index){
+		if(value=="0")
+			return "独立店铺";
+		if(value=="1")
+			return "韩国馆";
+		if(value=="2")
+			return "雅宝路商城";
+	}
+	function formatMarket(value,row,index){
+		if(value=="CHN")
+			return "中国";
+		if(value=="RUS")
+			return "俄罗斯";
+		if(value=="KOR")
+			return "韩国";
+	}
+
+	function formatchushidan(value,row,index){
+		if(value=="1")
+			return "未获取";
+		if(value=="2")
+			return "已获取";
+	}
+	function formatAction(value, row, index) {
+		var val = "";
+		return val;
+	}
+	function formatTime(value, row, index) {	
+		return getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	}
+	function linkStore() {
+		var rows = $('#linkdata').datagrid("getSelections");
+		if (rows.length < 1) {
+			$.Loading.error('请选择要关联的店铺');
+			return;
+		}
+		var storeids = [];
+		for(var i=0;i<rows.length;i++){
+			storeids.push(rows[i].store_id);
+		}
+// 		$("#linkStore").attr("disabled",true);
+		$("#linkStore").linkbutton("disable");
+		$.ajax({
+			url : "/shop/admin/shopCard!linkStore.do?ajax=yes",
+			type : "POST",
+			dataType : 'json',
+			traditional: true,
+			data : {shop_id:${shop_id},store_ids:storeids},
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success('关联成功');
+					$('#linkdata').datagrid('reload');
+					$("#linkStore").linkbutton("enable");
+// 					$("#linkStore").removeAttr("disabled"); 
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误，请重试");
+			}
+		});
+	}
+	//搜索
+	function searchStore(){
+		var storename = $.trim($("#storename").val());
+		$("#linkdata").datagrid('load', {
+			storename:storename,
+			page:1
+	   });
+	}
+</script>
+<#include '/admin/footer.html' >

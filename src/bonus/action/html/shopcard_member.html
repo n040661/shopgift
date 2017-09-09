@@ -1,0 +1,83 @@
+<#include '/admin/header.html' >
+<div class="main">
+<div class='buttonArea'>
+<!-- 	<a href="javascript:void(0)" class="easyui-linkbutton" onclick="del()">删除发放会员</a> -->
+	</div>
+	<form id="advform">
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'/shop/admin/shopCard!listMemberJson.do?shop_id=${shop_id}',pageList: [10,15,19,30],pageSize:${pageSize},fitColumns:'true'"
+				pagination="true" id="bonusdata">
+				<thead>
+					<tr>
+						<th data-options="field:'shop_member_id',checkbox:true"></th>
+						<th data-options="field:'shop_sn',width:100">购物卡序号</th>
+						<th data-options="field:'shop_type_id',width:100">购物卡ID</th>
+						<th data-options="field:'member_name',width:150">使用会员</th>
+						<th data-options="field:'create_time',width:100" formatter="forCtime">创建时间</th>
+						<th data-options="field:'used_time',width:100" formatter="fortime">最后使用时间</th>
+						<th data-options="field:'shop_money',width:100" formatter="forMoney">起始金额</th>
+						<th data-options="field:'shop_remiain_money',width:100" formatter="forMoney">剩余金额</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+	<div id="divdia" style="display: none;"></div>
+</div>
+
+<script>
+	function fortime(value,row,index){
+		var val;
+		if(value==0){
+			val = "未使用";
+		}else{
+			val = getFormatDateByLong(value,"yyyy-MM-dd")
+		}
+		return val;
+	}
+	function forMoney(value,row,index){
+		return "￥"+value;
+	}
+	
+	function forCtime(value,row,index){
+		var val;
+		if(value==0){
+			val = "";
+		}else{
+			val = getFormatDateByLong(value,"yyyy-MM-dd")
+		}
+		return val;
+	}
+	
+	function del() {
+		var rows = $('#bonusdata').datagrid("getSelections");
+		if (rows.length < 1) {
+			$.Loading.error('请选择要删除的会员');
+			return;
+		}
+		if (!confirm("确认要将这些会员删除吗？")) {
+			return;
+		}
+		var options = {
+			url : "/shop/admin/shopCard!deleteMemberShop.do?ajax=yes",
+			type : "POST",
+			dataType : 'json',
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success(result.message);
+					$('#bonusdata').datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误，请重试");
+			}
+		};
+		$('#advform').ajaxSubmit(options);
+	}
+</script>
+
+<#include '/admin/footer.html' >

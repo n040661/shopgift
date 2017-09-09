@@ -1,0 +1,286 @@
+<#include '/admin/header.html' >
+<div class="main">
+	<div class='buttonArea'>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="append()">添加</a> 
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="del()">删除</a>
+	</div>
+	
+	<form id="bonusform">
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'bonus-typec!listPlatform.do',pageList: [10,15,19,30],pageSize:${pageSize},fitColumns:'true'"
+				pagination="true" id="bonusdata">
+				<thead>
+					<tr>
+						<th data-options="field:'type_id',checkbox:true,width:100" ></th>
+						<th data-options="field:'type_name',width:60">名称</th>
+						<th data-options="field:'send_type',width:90" formatter="formatsendtype">发放类型</th>
+<!-- 						<th data-options="field:'send_start_date',width:90" formatter="formatDate">发放开始日期</th> -->
+<!-- 						<th data-options="field:'send_end_date',width:90" formatter="formatDate">发放结束日期</th> -->
+						<th data-options="field:'use_start_date',width:90" formatter="formatDate">使用开始日期</th>
+						<th data-options="field:'use_end_date',width:90" formatter="formatDate">使用结束日期</th>
+						<th data-options="field:'type_money',width:70">优惠金额</th>
+						<th data-options="field:'min_goods_amount',width:70">订单限额</th>
+						<th data-options="field:'create_num',width:70">发放数量</th>
+						<th data-options="field:'use_num',width:70">使用数量</th>
+<!-- 						<th data-options="field:'tax_system',width:70" formatter="taxFormat">税制</th> -->
+						<th data-options="field:'is_published',width:70" formatter="formatPublish">发布状态</th>
+						<th data-options="field:'action',width:100" formatter="formatOperation">操作</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+	
+	<div id="divdia" style="display: none;"></div>
+	
+</div>
+<script type="text/javascript">
+	function formatDate(value, row, index) {
+		return getFormatDateByLong(value, "yyyy-MM-dd"); 
+	}
+	//税制
+	function taxFormat(value, row, index) {
+		var val=""
+		if(value!=null){
+			if(row.tax_system==100){
+				val = "保税";
+			}else if(row.tax_system==101){
+				val = "完税";
+			}else if(row.tax_system==103){
+				val = "直邮";
+			}else{
+				val = "所有";
+			}
+		}
+		return val;
+	}
+	function formatPublish(value, row, index){
+		var val;
+		if(value==1){
+			val="<a title='点击取消发布' href='javascript:void(0);' onclick='javascript:unPublish("+row.type_id+")' >已发布</a>"
+		}else{
+			val="未发布"
+		}
+		return val
+	}
+	//取消发布
+	function unPublish(id){
+		if(!confirm("确定取消发布吗？\n取消后领取页面将不再显示该代金券，活动不能再次发布，已领取的券可以继续使用。")){
+			return false;
+		}
+		$.Loading.show("正在取消发布请稍后...");
+		$.ajax({
+			url : "/api/shop/bonustype!unPublish.do?typeid="+id,
+			dataType : 'json',
+			type: 'POST',
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success(result.message);
+					$("#bonusdata").datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误 ，请重试");
+			}
+		});
+	}
+	function append(id) {
+		var map = {}; // Map map = new HashMap();
+		if (!id) {
+			map["href"] = "bonus-typec!add.do";
+			map["formId"] = "#bonusTypeForm";
+			map["url"] = "bonus-typec!saveAdd.do?ajax=yes";
+			map["title"] = "添加优惠券类型";
+			map["loadshow"] = "正在添加......";
+		} else {
+			map["href"] = "bonus-typec!edit.do?typeid=" + id;
+			map["formId"] = "#editBonusTypeForm";
+			map["url"] = "bonus-typec!saveEdit.do?ajax=yes";
+			map["title"] = "修改优惠券类型";
+			map["loadshow"] = "正在修改......";
+		}
+		map["divDialog"] = "#divdia";
+		map["gridreload"] = "#bonusdata";
+
+		addDialog(map);
+	}
+	function addDialog(map) {
+		$(map["divDialog"]).show();
+		$(map["divDialog"]).dialog({
+			title : map["title"],
+			width : 750,
+			height : 400,
+			closed : false,
+			cache : false,
+			shadow :false,
+			href : map["href"],
+			modal : true,
+			buttons : [ {
+				text : '保存',
+				iconCls : 'icon-ok',
+				handler : function() {
+					submitForm(map);
+				}
+			}, {
+				text : '清空',
+				handler : function() {
+					clearForm(map);
+				}
+			} ]
+		});
+	}
+	function submitForm(map) {
+	    var name_abbreviate=$("#recognition").val();
+	    var type_id=$("#type_id").val();
+		if(!checkName(name_abbreviate, type_id)){
+			return false;
+		}
+		var formflag = $(map["formId"]).form().form('validate');
+		if (formflag) {
+			$.Loading.show(map["loadshow"]);
+			var options = {
+				url : map["url"],
+				type : "POST",
+				dataType : 'json',
+				success : function(result) {
+					if (result.result == 1) {
+						$(map["divDialog"]).dialog('close');
+						$(map["gridreload"]).datagrid('reload');
+						$.Loading.success(result.message);
+					}
+					if (result.result == 0) {
+						$.Loading.error(result.message);
+					}
+				},
+				error : function(e) {
+					alert("出现错误 ，请重试");
+				}
+			};
+			$(map["formId"]).ajaxSubmit(options);
+		}
+	}
+
+	function clearForm(map) {
+		$(map["formId"]).form('clear');
+	}
+	
+	function removeBonus(typeid){
+		$.ajax({
+			url:"bonus-typec!delete.do?type_id="+typeid+"&ajax=yes",
+			dataType:"json",
+			success:function(res){
+				if(res.result==1){
+					$.Loading.success(res.message);
+					$('#bonusdata').datagrid("reload");
+				}else{
+					$.Loading.error(res.message);
+				}
+			},
+			error:function(){
+				alert("删除出现意外错误");
+			}
+		});
+	}
+
+	function formatOperation(value, row, index) {
+		var val = "";
+		val += "<a class='issue' title='发放' href='javascript:void(0);' onclick='newTab(\"发放优惠券\",\"${ctx}/shop/admin/bonus-typec!send.do?typeid="
+				+ row.type_id + "\")'></a>"
+		val += "<a class='view' title='查看' href='javascript:void(0);' onclick='newTab(\"优惠券列表\",\"${ctx}/shop/admin/bonus-typec!listMember.do?typeid="
+				+ row.type_id +"\")' ></a>"
+		val += "<a class='edit' title='编辑' href='javascript:void(0);' onclick='append("
+				+ row.type_id + ")'></a>" 
+		val += "<a class='delete' title='移除' href='javascript:void(0);' onclick='removeBonus("+row.type_id+")' ></a>"
+		val += "<a class='view' title='关联' href='javascript:void(0);' onclick='newTab(\"列表\",\"${ctx}/shop/admin/bonus-typec!listLink.do?typeid=" + row.type_id +"\")' ></a>"
+		return val;
+	}
+	
+	//报表打印  xulipeng 
+	function exportExc(tid){
+	}
+	//删除
+	function del() {
+		var rows = $('#bonusdata').datagrid("getSelections");
+		if (rows.length < 1) {
+			$.Loading.error('请选择要删除的优惠劵');
+			return;
+		}
+		if (!confirm("确认要将这些优惠劵删除吗？")) {
+			return;
+		}
+		var options = {
+			url : "bonus-typec!delete.do?ajax=yes",
+			type : "POST",
+			dataType : 'json',
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success('删除成功');
+					$('#bonusdata').datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误，请重试");
+			}
+		};
+		$('#bonusform').ajaxSubmit(options);
+	}
+	function formatsendtype(value, row, index) {
+		var val;
+		if (value == -1) {
+			val = "移动端";
+		}else if (value == 0) {
+			val = "平台发放";
+		}else if (value == 1) {
+			val = "店铺发放";
+		}else if (value == 3) {
+			val = "店铺注册发放";
+		}else if (value == 4) {
+			val = "平台注册发放";
+		}
+		return val;
+	}
+
+	//获取今天的日期
+	$(function() {
+		var curr_time = new Date();
+		var strDate = curr_time.getFullYear() + "-";
+		strDate += curr_time.getMonth() + 1 + "-";
+		strDate += curr_time.getDate() + "-";
+		strDate += curr_time.getHours() + ":";
+		strDate += curr_time.getMinutes() + ":";
+		strDate += curr_time.getSeconds();
+	});
+	function checkName(name, type_id){
+		var flag=false;
+		if(typeof(type_id)!="undefined" && type_id!="undefined"){
+			url="bonus-typec!checkRecognition.do?recognition="+name+"&typeid="+type_id;
+		}else{
+			url="bonus-typec!checkRecognition.do?recognition="+name;
+		}
+		var options={
+				url:url,
+				type:"POST",
+				async:false,
+				dataType:"json",
+				success:function(result){
+					if(result.result==0){
+						$.Loading.error(result.message);
+					}
+					else flag=true;
+				},
+				error:function (){
+					$.Loading.error("出现错误");
+				}
+		}
+		$.ajax(options);
+		return flag;
+	}
+</script>
+<#include '/admin/footer.html' >

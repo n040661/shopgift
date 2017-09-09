@@ -1,0 +1,131 @@
+<#assign dataformat="com.enation.framework.directive.DateformateDirective"?new()/>
+<style>
+.input_text{
+	width: 200px;
+}
+</style>
+<div class="easyui-panel" style="border-style: none;">
+	<div style="padding: 10px 0 10px 20px">
+		<form method="post" class="validate" id="editBonusTypeForm">
+			<table>
+				<tr>
+					<th><label class="text">优惠券识别码：</label></th>
+					<td><input class="easyui-validatebox input_text" 
+						data-options="required:true,validType:['string','length[0,20]','englishCheckSub']" type="text" value="${bonusType.recognition}"
+						name="bonusType.recognition"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">类型中文名称：</label></th>
+					<td><input class="easyui-validatebox input_text"
+						data-options="required:true" type="text" value="${bonusType.type_name}"
+						name="bonusType.type_name" maxlength="60"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<#--<th><label class="text">类型俄文名称：</label></th>-->
+					<td><input class="easyui-validatebox input_text"
+						data-options="required:true" type="hidden" value="${bonusType.type_name_ru}"
+						name="bonusType.type_name_ru" maxlength="60"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">红包人民币金额：</label></th>
+					<td><input class="easyui-numberbox input_text"
+						data-options="required:true" type="text" value="${bonusType.type_money}"
+						maxlength="8" 
+						name="bonusType.type_money" isrequired="true" />
+						<em class="tip">此类红包可以抵消的人民币金额</em>
+					</td>
+				</tr>
+				<tr>
+					<#--<th><label class="text">红包卢布金额：</label></th>-->
+					<td><input class="easyui-numberbox input_text"
+						data-options="required:true" type="hidden" value="${bonusType.type_money_ru}"
+						maxlength="8" 
+						name="bonusType.type_money_ru" isrequired="true" />
+						<#--<em class="tip">此类红包可以抵消的卢布金额</em>-->
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">最小订单金额</label></th>
+					<td><input type="text" name="bonusType.min_goods_amount" value="${bonusType.min_goods_amount}"
+						maxlength="8" 
+						class="easyui-numberbox input_text" data-options="required:true" /> 
+						<em class="tip">只有商品总金额达到这个数的订单才能使用这种红包</em>
+					</td>
+				</tr>
+				<tr>
+					<#--<th><label class="text">最小订单卢布金额</label></th>-->
+					<td><input type="hidden" name="bonusType.min_goods_amount_ru" value="${bonusType.min_goods_amount_ru}"
+						maxlength="8" 
+						class="easyui-numberbox input_text" data-options="required:true" /> 
+						<#--<em class="tip">只有商品总金额达到这个数的订单才能使用这种红包</em>-->
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">如何发放此类型红包：</label></th>
+					<td><input type="radio" name="bonusType.send_type" class="send_type" value="0" <#if bonusType.send_type==0>checked</#if> />按用户发放&nbsp;&nbsp;&nbsp;&nbsp; 
+						<input type="radio" name="bonusType.send_type" class="send_type" value="3" <#if bonusType.send_type==3>checked</#if> />线下发放的红包&nbsp;&nbsp;&nbsp;&nbsp;
+					</td>
+				</tr>
+				
+				<tr>
+					<th><label class="text">发放开始日期：</label></th>
+					<td><input type="text" name="sendTimeStart" style="height: 28px;" id="sendTimeStart"  value="<@dataformat time="${bonusType.send_start_date}" pattern="yyyy-MM-dd" />"
+						value="" class="easyui-datebox" data-options="required:true" /> <em
+						class="tip">只有当前时间介于起始日期和截止日期之间时，此类型的红包才可以发放</em>
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">发放结束日期：</label></th>
+					<td><input type="text" name="sendTimeEnd" style="height: 28px;" id="sendTimeEnd"  value="<@dataformat time="${bonusType.send_end_date}" pattern="yyyy-MM-dd" />"
+						class="easyui-datebox" data-options="required:true" /></td>
+				</tr>
+				
+				<tr>
+					<th><label class="text">使用地区馆：</label></th>
+					<td>
+					 <select name="sendplat">
+					     <option value="1"  <#if bonusType.sendplat==1>selected</#if>>龙江物产</option>
+					     <option value="-1"  <#if bonusType.sendplat==-1>selected</#if>>所有</option>
+                         <option value="0"  <#if bonusType.sendplat==0>selected</#if>>俄罗斯馆</option>
+                         <option value="2" <#if bonusType.sendplat==2>selected</#if>>澳大利亚馆</option>
+                         <option value="3" <#if bonusType.sendplat==3>selected</#if>>新西兰馆</option>
+                         <option value="4" <#if bonusType.sendplat==4>selected</#if>>韩国馆</option>
+                         <option value="5" <#if bonusType.sendplat==5>selected</#if>>德国馆</option>
+                         <option value="5" <#if bonusType.sendplat==7>selected</#if>>融信大宗</option>
+                         <option value="5" <#if bonusType.sendplat==8>selected</#if>>美洲馆</option>
+					 </select>
+                   </td>
+				</tr>
+			</table>
+			<input type="hidden" name="bonusType.type_id" value="${bonusType.type_id}">
+		</form>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$(function() {
+		
+		//类型切换
+		$("input[type=radio]").click(
+				function() {
+					var value = this.value;
+					if (value == 1 || value == 2) {
+						$('#sendTimeStart').datebox('enable');
+						$('#sendTimeEnd').datebox('enable'); 
+					} else {
+						$('#sendTimeStart').datebox('disable');
+						$('#sendTimeEnd').datebox('disable');
+					}
+
+					if (value == 2) {
+						$("#min_tr").show();
+					} else {
+						$("#min_tr").hide();
+					}
+				});
+	});
+
+</script>

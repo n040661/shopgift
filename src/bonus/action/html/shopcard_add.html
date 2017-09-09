@@ -1,0 +1,114 @@
+<#assign dataformat="com.enation.framework.directive.DateformateDirective"?new()/>
+<style>
+.input_text{
+	width: 200px;
+}
+</style>
+<div class="easyui-panel" style="border-style: none;">
+	<div style="padding: 10px 0 10px 20px">
+		<form method="post" class="validate" id="addForm">
+			<table>
+				<tr>
+					<th><label class="text">购物卡名称：</label></th>
+					<td><input class="easyui-validatebox input_text"
+						data-options="required:true,validType:['string','length[6,20]']" type="text"
+						name="shopCartType.shop_name" maxlength="20"
+						id="shop_name_"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">购物卡识别码：</label></th>
+					<td><input class="easyui-validatebox input_text" id="recognition"
+						data-options="required:true,validType:['string','length[6,20]']" type="text"
+						name="shopCartType.recognition" maxlength="20"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">代金券金额：</label></th>
+					<td><input class="easyui-numberbox input_text"
+						data-options="required:true" type="text"
+						maxlength="8" 
+						name="shopCartType.shop_money" dataType="float" isrequired="true" />
+<!-- 						<em class="tip">此类代金券可以抵消的人民币金额</em> -->
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">如何发放此类型代金券：</label></th>
+					<td>
+						<input type="radio" name="shopCartType.send_type" value="0" checked="true"/>按平台发放&nbsp;&nbsp;&nbsp;&nbsp; 
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">开始日期：</label></th>
+					<td><input type="text" name="use_start_date" style="height: 28px;"  id="use_start_date"  value="<@dataformat time="now" pattern="yyyy-MM-dd HH:mm:ss" />"
+						 class="easyui-datetimebox" data-options="required:true" /> 
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">结束日期：</label></th>
+					<td><input type="text" name="use_end_date" style="height: 28px;" id="use_end_date"  
+						class="easyui-datetimebox" data-options="required:true" /></td>
+				</tr>
+				<tr style="display:none">
+					<th><label class="text">使用地区馆：</label></th>
+					<td>
+					 <select name="shopCartType.sendplat">
+					 	<option value="-1" selected="selected">所有</option>
+					 </select>
+                   </td>
+				</tr>
+				<tr style="display:none;">
+					<th><label class="text">税制：</label></th>
+					<td>
+					 <select name="shopCartType.tax_system">
+					 	<option value="102" selected="selected">全部</option>
+<!-- 					 	<option value="100">保税</option> -->
+<!-- 					 	<option value="101">完税</option> -->
+<!-- 					 	<option value="103">直邮</option> -->
+					 </select>
+                   </td>
+				</tr>
+				<tr>
+					<th><label class="text">是否启用：</label></th>
+					<td>
+						是<input type="radio" name="shopCartType.is_published" value="1" checked="true" />&nbsp;&nbsp;&nbsp;&nbsp; 
+						否<input type="radio" name="shopCartType.is_published" value="0"/>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script>
+$(function() {//下个月
+	var d = new Date();
+	var year = d.getFullYear();
+	var month = d.getMonth() + 1;
+	if (month==12) {
+		month="01";
+		year=year+1;
+	}else{
+		if (month < 9) {
+			month = "0" + month +1;
+		}
+	}
+	var date = d.getDate();
+	if (date < 10) {
+		date = "0" + date;
+	}
+	var str = year + "-" + month + "-" + date + " 23:59:59";
+	$("#use_end_date").attr("value", str);
+})
+$('#use_start_date').datetimebox({
+	required : false,
+	onShowPanel : function() {
+		$(this).datetimebox("spinner").timespinner("setValue", "00:00:00");
+	}
+});
+$('#use_end_date').datetimebox({
+	required : false,
+	onShowPanel : function() {
+		$(this).datetimebox("spinner").timespinner("setValue", "23:59:59");
+	}
+});
+</script>

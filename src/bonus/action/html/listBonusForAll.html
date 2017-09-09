@@ -1,0 +1,74 @@
+<#include '/admin/header.html' >
+<div class="main">
+		<div class='buttonArea'>
+			<span id="searchbtn">
+				<a href="javascript:void(0)" class="button"  onclick="append()">添加选中</a>
+			</span>
+		</div>
+		<div class="shadowBoxWhite tableDiv">
+		<form id="gridform">
+	     	<input type="hidden" name="activeid1" value="${activeid1!''}"/>
+			<table class="easyui-datagrid"
+				data-options="url:'${ctx}/shop/admin/bonus-type!listBonusForALLJSon.do?ajax=yes&activeid1=${activeid1!''}',pageList: [5,10,15,20],pageSize:${pageSize},fitColumns:'true'"
+				pagination="true" width="width" id="goodsdata">
+				<thead>
+					<tr>
+						<th data-options="field:'type_id',checkbox:true,width:100" ></th>
+						<th data-options="field:'type_name',width:100"  >类型名称商品名称</th>
+						<th data-options="field:'send_type',width:100" formatter="formatType">发放类型排序</th>
+						<th data-options="field:'type_money',width:100" formatter="forMoney">红包人民币金额图片</th>
+						<th data-options="field:'min_goods_amount',width:100" formatter="forMoney">最小订单金额 原始价格</th>
+						<th data-options="field:'send_start_date',width:100" formatter="formatTime">发放开始日期活动价格</th>
+						<th data-options="field:'send_end_date',width:100" formatter="formatTime">发放结束日期活动价格</th>
+					</tr>
+				</thead>
+			</table>
+		</form>
+		<div id="SMTPinfo" style="display: none;"></div>
+	</div>
+</div>
+<script type="text/javascript">
+function formatType(value,row,index){
+	if(value==0){
+		var val= "按用户发放红包";
+	}else{
+		var val= "线下发放的红包 ";
+	}
+	return val;
+}
+function formatTime(value,row,index){
+	var val = getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	return val;
+}
+function forMoney(value, row, index) {
+		var val = "￥" + value;
+	return val;
+}
+function append(){
+	var rows = $('#goodsdata').datagrid("getSelections"); 
+	if(rows.length<1){
+		$.Loading.error("请选择要添加商品");
+		return;
+	}
+	$.Loading.show("正在添加商品...");
+	var options = {
+			url : '${ctx}/shop/admin/bonus-type!batchAddForRegister.do?ajax=yes',
+			type : 'POST',
+			dataType : 'json',
+			success : function(result) {
+				if(result.result==1){
+					$.Loading.success(result.message);
+					location.href = "${ctx}/shop/admin/bonus-type!listBonus.do?activeid="+${activeid1};
+				}
+				if(result.result==0){
+					$.Loading.success(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误 ，请重试");/*出现错误 ，请重试*/
+			}
+	};
+	$('#gridform').ajaxSubmit(options);	
+ }
+</script>
+<#include '/admin/footer.html' >

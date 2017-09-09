@@ -1,0 +1,67 @@
+<#include '/admin/header.html' > 
+<#assign dateFormat="com.enation.framework.directive.DateformateDirective"?new()>
+<div class="main">
+	<div class="buttonArea">
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="newTab('添加优惠券','${ctx}/shop/admin/bonus-type!listBonusForAll.do?activeid=${activeid}')">添加优惠券</a>
+	</div>
+	<div class="shadowBoxWhite tableDiv">
+		<form id="goodsShowform">
+			<table class="easyui-datagrid"
+				data-options="url:'${ctx}/shop/admin/bonus-type!listBonusJson1.do?ajax=yes&activeid=${activeid}',pageList: [5,10,15,20],pageSize:${pageSize},fitColumns:'true'"
+				pagination="true" width="width" id="goodsShowData">
+				<thead>
+					<tr>
+						<th data-options="field:'type_name',width:100" >类型名称<!-- 商品名称 --></th>
+						<th data-options="field:'send_type',width:100" formatter="formatType">发放类型<!-- 排序 --></th>
+						<th data-options="field:'type_money',width:100" formatter="forMoney">红包人民币金额<!-- 图片 --></th>
+						<th data-options="field:'min_goods_amount',width:100" formatter="forMoney">最小订单金额 <!-- 原始价格 --></th>
+						<th data-options="field:'send_start_date',width:100" formatter="formatTime">发放开始日期<!-- 活动价格 --></th>
+						<th data-options="field:'send_end_date',width:100" formatter="formatTime">发放结束日期<!-- 活动价格 --></th>
+						 <th data-options="field:'delete',width:100,align:'center'" formatter="formatDelete">操作</th>
+					</tr>
+				</thead>
+			</table>
+		</form>
+		<div id="SMTPinfo" style="display: none;"></div>
+	</div>
+</div>
+
+<script type="text/javascript">
+function formatType(value,row,index){
+	if(value==0){
+		var val= "按用户发放红包";
+	}else{
+		var val= "线下发放的红包 ";
+	}
+	return val;
+}
+function formatTime(value,row,index){
+	var val = getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	return val;
+}
+function forMoney(value, row, index) {
+		var val = "￥" + value;
+	return val;
+}
+function formatDelete(value,row,index){
+	var val="<a title='删除优惠券' onclick='del("+row.rel_id+")'>删除优惠券</a>";
+	return val;
+}
+function del(id){
+	if(confirm("确定删除优惠券吗?")){
+	$.ajax({
+			url :"${ctx}/shop/admin/bonus-type!deleteRegister.do?ajax=yes&rel_id="+id,
+			type : "POST",
+			dataType : 'json',
+			success : function(result) {
+				$.Loading.success(result.message);
+				$('#goodsShowData').datagrid('reload');
+			},
+			error : function(e) {
+				$.Loading.error("出现错误，请重试");
+			}
+		});
+	} 
+}
+</script>
+<#include '/admin/footer.html' >

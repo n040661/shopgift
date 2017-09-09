@@ -1,0 +1,41 @@
+<#assign dataformat="com.enation.framework.directive.DateformateDirective"?new()/>
+<style>
+.input_text{
+	width: 200px;
+}
+</style>
+<div class="easyui-panel" style="border-style: none;">
+	<div style="padding: 10px 0 10px 20px">
+		<form method="post" class="validate" id="editBonusTypeForm">
+			<table>
+				<tr>
+					<th><label class="text">规则名称：</label></th>
+					<td><input class="easyui-validatebox input_text"
+						data-options="required:true" type="text"
+						name="registerBonus.name" maxlength="60" value="${registerBonus.name!''}"
+						isrequired="true" /></td>
+				</tr>
+				<tr>
+					<th><label class="text">使用起始日期：</label></th>
+					<td><input type="text" name="active_start_time" style="height: 28px;" id="useTimeStart"  value="<@dataformat time="${registerBonus.active_start_time}" pattern="yyyy-MM-dd" />" 
+						class="easyui-datebox" data-options="required:true" /> <em
+						class="tip">只有当前时间介于起始日期和截止日期之间时，此类型的红包才可以使用</em>
+					</td>
+				</tr>
+				<tr>
+					<th><label class="text">使用结束日期：</label></th>
+					<td><input type="text" name="active_end_time" style="height: 28px;" id="useTimeEnd"  value="<@dataformat time="${registerBonus.active_end_time}" pattern="yyyy-MM-dd" />"
+						class="easyui-datebox" data-options="required:true" /></td>
+				</tr>
+				<tr>
+					<th>是否开启</th>
+					<td><input class="easyui-validatebox input_text" type="radio" <#if registerBonus.is_true==1>checked</#if>
+						style="width: 10px;" name="registerBonus.is_true" value="1" checked="checked"/>
+						开启&nbsp;&nbsp; <input type="radio" name="registerBonus.is_true" value="0" <#if registerBonus.is_true==0>checked</#if> />
+						停用</td>
+				</tr>
+			</table>
+			<input type="hidden" name="registerBonus.id" value="${registerBonus.id}">
+		</form>
+	</div>
+</div>

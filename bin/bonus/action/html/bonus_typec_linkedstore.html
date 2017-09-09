@@ -1,0 +1,121 @@
+<#include '/admin/header.html' >
+<div class="main">
+	<div class='buttonArea'>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="newTab('列表','${ctx}/shop/admin/bonus-typec!listToLink.do?typeid=${typeid}')">关联店铺</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="unlinkStore()">删除关联</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" id="saveIndex" onclick="saveIndex()">保存排序</a>
+		<a href="javascript:void(0)" class="button b_fr" id="search" data-options="plain:true" onclick="searchStore()">搜索</a>&nbsp;&nbsp;
+		<input id="storename" class="input_text b_fr mr5" type="text" value="" size="30" placeholder="请输入店铺名" name="storename" />
+	</div>
+	
+	<form id="giftform">
+		<div class="shadowBoxWhite tableDiv">
+			<table class="easyui-datagrid"
+				data-options="url:'bonus-typec!linkedListJson.do?typeid=${typeid}',pageList: [5,10,20,30],pageSize:${pageSize!10},fitColumns:'true'"
+				pagination="true" width="width" id="linkdata" sortName="the_index" sortOrder="desc">
+				<thead>
+					<tr>
+						<th data-options="field:'id',checkbox:true,width:100" ></th>
+						<th data-options="field:'bonus_type_id',width:40,sortable:true">代金券ID</th>
+						<th data-options="field:'the_index',width:80,sortable:true" formatter="formatOrdernum">索引</th>
+						<th  data-options="field:'store_id',width:40">店铺ID</th>
+						<th data-options="field:'store_name',width:70,sortable:true">店铺名称</th>
+				   <!-- <th data-options="field:'action',width:80" formatter="formatAction">操作</th> -->
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</form>
+<div id="divdia" style="display: none;"></div>
+</div>
+<script type="text/javascript">
+	function formatAction(value, row, index) {
+		var val = "";
+		return val;
+	}
+	function formatTime(value, row, index) {	
+		return getFormatDateByLong(value, "yyyy-MM-dd hh:mm:ss");
+	}
+	function formatOrdernum(value,row,index){
+		var val="<input type=\"text\" class=\"input_text\" value=\"";
+		if(row.the_index==null){ val+=0;}else{val+=row.the_index;}
+		val+="\" name=\"the_index\"/>"
+		val+="<input type=\"hidden\" name=\"srid\" value=\""+row.id+"\" />"
+		return val;
+	}
+	function saveIndex(){
+		if(confirm("确定保存排序？")){
+			var is_num=true;
+			var classBlack = document.getElementsByClassName('input_text');
+			for (var i=0; i<classBlack.length; i++) {
+			   if(isNaN(classBlack[i].value)){
+				   is_num=false;
+			   }
+			}
+			
+			if(is_num){
+			$("#saveIndex").linkbutton("disable");
+			var options = {
+					url : "bonus-typec!saveIndex.do?ajax=yes",
+					type : "POST",
+					dataType : 'json',
+					success : function(result) {
+						if(result.result==1){
+							$.Loading.success(result.message);
+							$('#linkdata').datagrid('reload');
+						}else{
+							$.Loading.error(result.message);				
+						}
+						$("#saveIndex").linkbutton("enable"); 
+					},
+					error : function(e) {
+						$.Loading.error("出现错误 ，请重试");
+						$("#saveIndex").linkbutton("enable"); 
+					}
+				};
+				$('#giftform').ajaxSubmit(options);	
+			}else{
+				$.Loading.error("您输入的排序不是数字,并且不能为空");
+			} 
+		}
+	}
+	function unlinkStore() {
+		var rows = $('#linkdata').datagrid("getSelections");
+		if (rows.length < 1) {
+			$.Loading.error('请选择要删除的店铺');
+			return;
+		}
+		var storeids = [];
+		for(var i=0;i<rows.length;i++){
+			storeids.push(rows[i].store_id);
+		}
+		$.ajax({
+			url : "bonus-typec!unlinkStore.do?ajax=yes",
+			type : "POST",
+			dataType : 'json',
+			traditional: true,
+			data : {typeid:${typeid},store_ids:storeids},
+			success : function(result) {
+				if (result.result == 1) {
+					$.Loading.success('删除关联成功');
+ 					$('#linkdata').datagrid('reload');
+				}
+				if (result.result == 0) {
+					$.Loading.error(result.message);
+				}
+			},
+			error : function(e) {
+				$.Loading.error("出现错误，请重试");
+			}
+	});
+	}
+	//搜索
+	function searchStore(){
+		var storename = $.trim($("#storename").val());
+		$("#linkdata").datagrid('load', {
+			storename:storename,
+			page:1
+	   });
+	}
+</script>
+<#include '/admin/footer.html' >
